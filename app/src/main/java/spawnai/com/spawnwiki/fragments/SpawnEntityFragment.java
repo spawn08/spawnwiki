@@ -27,11 +27,9 @@ public class SpawnEntityFragment extends Fragment {
     private TextView title;
     private TextView description;
 
-
     public void setData(SpawnWikiModel spawnWikiModel) {
         this.spawnWikiModel = spawnWikiModel;
     }
-
 
     @Nullable
     @Override
@@ -49,7 +47,11 @@ public class SpawnEntityFragment extends Fragment {
     private void updateView() {
         if (spawnWikiModel != null) {
             title.setText(spawnWikiModel.getDisplaytitle());
-            description.setText(spawnWikiModel.getExtract());
+            String info = getInfoFromExtract(spawnWikiModel.getExtract().replaceAll("\n"," "));
+            if (info != null && !info.isEmpty())
+                description.setText(info);
+            else
+                description.setText(spawnWikiModel.getExtract());
             if (spawnWikiModel.getThumbnail() != null && spawnWikiModel.getThumbnail().getSource() != null) {
                 Glide.with(getActivity())
                         .applyDefaultRequestOptions(new RequestOptions().placeholder(R.drawable.default_portrait).error(R.drawable.default_portrait))
@@ -64,6 +66,22 @@ public class SpawnEntityFragment extends Fragment {
                         .into(profileImage);
             }
         }
+    }
+
+    public String getInfoFromExtract(String extract) {
+        String text = "";
+        try {
+            String[] splitExtract = extract.split("\\.");
+            if (splitExtract.length > 1) {
+                text = splitExtract[0] + ". " + splitExtract[1];
+            } else {
+                text = splitExtract[0];
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return text + ".";
     }
 
 

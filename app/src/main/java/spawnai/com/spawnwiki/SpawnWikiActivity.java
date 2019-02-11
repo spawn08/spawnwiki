@@ -1,18 +1,19 @@
 package spawnai.com.spawnwiki;
 
 import android.content.Intent;
+import android.os.Bundle;
 import android.speech.RecognizerIntent;
-import android.speech.SpeechRecognizer;
 import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -31,9 +32,10 @@ import spawnai.com.spawnwiki.models.SpawnWikiModel;
 public class SpawnWikiActivity extends AppCompatActivity implements View.OnClickListener {
 
     private EditText searchText;
-    private Button button;
+    private TextView button;
     private SpawnWikiActivity spawnWikiActivity;
     private ConstraintLayout container;
+    private ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,41 +45,49 @@ public class SpawnWikiActivity extends AppCompatActivity implements View.OnClick
         searchText = findViewById(R.id.search_text);
         button = findViewById(R.id.button_search);
         container = findViewById(R.id.container);
-        button.setOnClickListener(this);
+        progressBar = findViewById(R.id.progress);
 
+        button.setOnClickListener(this);
 
     }
 
-    private void callWikiAPI(String entity) {
+    private void callWikiAPI(final String entity) {
 
-        // entity = entity.trim().replace(" ", "%20");
-        Log.d("ENTITY ", entity);
-
+        final String cloneEntity = entity.trim().replace(" ", "_").toLowerCase();
+        Log.d("ENTITY ", cloneEntity);
+        progressBar.setVisibility(View.VISIBLE);
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(ISPAWNWIKICONSTANT.API_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
         final ISpawnAPI spawnAPI = retrofit.create(ISpawnAPI.class);
-        Call<SpawnWikiModel> data = spawnAPI.getWiki(entity);
+        Call<SpawnWikiModel> data = spawnAPI.getWiki(cloneEntity);
         data.enqueue(new Callback<SpawnWikiModel>() {
             @Override
             public void onResponse(Call<SpawnWikiModel> call, Response<SpawnWikiModel> response) {
                 if (response.isSuccessful()) {
                     Log.d("API CONTENT ", response.body().toString());
                     SpawnWikiModel spawnWikiModel = response.body();
-                    SpawnEntityFragment spawnEntityFragment = new SpawnEntityFragment();
-                    spawnEntityFragment.setData(spawnWikiModel);
-                    FragmentManager fragmentManager = getSupportFragmentManager();
-                    FragmentTransaction ft = fragmentManager.beginTransaction()
-                            .setCustomAnimations(R.anim.enter_from_right, R.anim.exit_to_right)
-                            .replace(R.id.container, spawnEntityFragment, "spawn");
+                    if (spawnWikiModel.getType().equals("disambiguation")) {
+                        progressBar.setVisibility(View.GONE);
+                        Toast.makeText(spawnWikiActivity, "Page not found!", Toast.LENGTH_SHORT).show();
+                    } else {
+                        SpawnEntityFragment spawnEntityFragment = new SpawnEntityFragment();
+                        spawnEntityFragment.setData(spawnWikiModel);
+                        FragmentManager fragmentManager = getSupportFragmentManager();
+                        FragmentTransaction ft = fragmentManager.beginTransaction()
+                                .setCustomAnimations(R.anim.enter_from_right, R.anim.exit_to_right)
+                                .addToBackStack(null)
+                                .replace(R.id.container, spawnEntityFragment, "spawn");
+                        progressBar.setVisibility(View.GONE);
+                        button.setVisibility(View.GONE);
 
-                    button.setVisibility(View.GONE);
-
-                    ft.commit();
+                        ft.commit();
+                    }
 
                 } else {
+                    progressBar.setVisibility(View.GONE);
                     if (spawnWikiActivity != null)
                         Toast.makeText(spawnWikiActivity, "Page not found!", Toast.LENGTH_SHORT).show();
                 }
@@ -85,6 +95,7 @@ public class SpawnWikiActivity extends AppCompatActivity implements View.OnClick
 
             @Override
             public void onFailure(Call<SpawnWikiModel> call, Throwable t) {
+                progressBar.setVisibility(View.GONE);
                 if (spawnWikiActivity != null)
                     Toast.makeText(spawnWikiActivity, "Page not found!", Toast.LENGTH_SHORT).show();
 
@@ -106,8 +117,6 @@ public class SpawnWikiActivity extends AppCompatActivity implements View.OnClick
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                /*String entity = searchText.getText().toString();
-                callWikiAPI(entity);*/
                 break;
         }
     }
@@ -121,9 +130,25 @@ public class SpawnWikiActivity extends AppCompatActivity implements View.OnClick
                 if (requestCode == 1000 && data != null) {
                     ArrayList<String> voiceSpeech = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
                     searchText.setText(voiceSpeech.get(0));
+                    searchText.setSelection(voiceSpeech.get(0).length());
                     callWikiAPI(voiceSpeech.get(0));
                 }
                 break;
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        int count = 0;
+        if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
+            button.setVisibility(View.VISIBLE);
+            count++;
+            if (count > 1) {
+                count = 0;
+                this.finish();
+            }
+        } else
+            getSupportFragmentManager().popBackStack();
     }
 }

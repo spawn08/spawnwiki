@@ -12,6 +12,7 @@ public class SpawnWikiModel {
     public String description;
     public String extract;
     public Thumbnail thumbnail;
+    public String type;
 
     public JSONObject content_urls;
 
@@ -61,5 +62,19 @@ public class SpawnWikiModel {
 
     public void setContent_urls(JSONObject content_urls) {
         this.content_urls = content_urls;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    @Override
+    public String toString() {
+        return "Type: " + type + " Display Title: " + displaytitle +
+                " Description " + description + " Extract: " + extract;
     }
 }

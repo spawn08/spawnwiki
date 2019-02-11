@@ -33,4 +33,9 @@ public class Thumbnail {
     public void setHeight(String height) {
         this.height = height;
     }
+
+    @Override
+    public String toString() {
+        return "Source: " + source + " Height: " + height + " Width: " + width;
+    }
 }
