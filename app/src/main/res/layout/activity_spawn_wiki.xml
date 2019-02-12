@@ -12,7 +12,7 @@
 
     <EditText
         android:layout_width="match_parent"
-        android:layout_height="55dp"
+        android:layout_height="45dp"
         android:id="@+id/search_text"
         android:hint="Search for person, place"
         android:textColorHint="@color/colorPrimary"
@@ -62,9 +62,10 @@
         android:textSize="20dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.502"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.136" />
+        app:layout_constraintVertical_bias="0.192" />
 
     <ProgressBar
         android:layout_width="wrap_content"
@@ -82,15 +83,17 @@
         app:layout_constraintTop_toBottomOf="@+id/search_text" />
 
     <ImageView
-        android:layout_width="65dp"
-        android:layout_height="65dp"
+        android:layout_width="55dp"
+        android:layout_height="55dp"
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:id="@+id/spawn_mic"
-        android:src="@drawable/android_mic_blue"
+        android:padding="5dp"
+        android:src="@drawable/ic_mic_icon"
         android:scaleType="fitXY"
+        android:background="@drawable/circle"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

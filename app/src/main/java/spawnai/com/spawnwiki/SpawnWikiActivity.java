@@ -85,7 +85,7 @@ public class SpawnWikiActivity extends AppCompatActivity implements View.OnClick
     private void callWikiAPI(final String entity) {
 
         final String cloneEntity = entity.trim().replace(" ", "_");
-        Log.d("ENTITY ", cloneEntity);
+        Log.d("ENTITY: ", cloneEntity);
         progressBar.setVisibility(View.VISIBLE);
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(ISPAWNWIKICONSTANT.API_URL)
@@ -99,7 +99,7 @@ public class SpawnWikiActivity extends AppCompatActivity implements View.OnClick
             public void onResponse(Call<SpawnWikiModel> call, Response<SpawnWikiModel> response) {
                 if (response.isSuccessful()) {
                     hideKeyboardFrom(spawnWikiActivity, container);
-                    Log.d("API CONTENT ", response.body().toString());
+                    Log.d("API CONTENT: ", response.body().toString());
                     SpawnWikiModel spawnWikiModel = response.body();
                     if (spawnWikiModel.getType().equals("disambiguation")) {
                         progressBar.setVisibility(View.GONE);
@@ -191,6 +191,7 @@ public class SpawnWikiActivity extends AppCompatActivity implements View.OnClick
         super.onBackPressed();
         int count = 0;
         if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
+            searchText.setText("");
             button.setVisibility(View.VISIBLE);
             count++;
             if (count > 1) {
@@ -220,8 +221,9 @@ public class SpawnWikiActivity extends AppCompatActivity implements View.OnClick
             @Override
             public void onResponse(Call<List<SpawnEntityModel>> call, Response<List<SpawnEntityModel>> response) {
                 try {
-                    
-
+                    //progressBar.setVisibility(View.GONE);
+                    List<SpawnEntityModel> model = response.body();
+                    callWikiAPI(model.get(0).getValue());
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -230,7 +232,8 @@ public class SpawnWikiActivity extends AppCompatActivity implements View.OnClick
 
             @Override
             public void onFailure(Call<List<SpawnEntityModel>> call, Throwable t) {
-                Log.d("ERROR: ", t.getMessage());
+                Log.e("ERROR: ", t.getMessage());
+                progressBar.setVisibility(View.GONE);
             }
         });
     }

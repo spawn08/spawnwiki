@@ -2,6 +2,8 @@ package spawnai.com.spawnwiki.models;
 
 import org.json.JSONObject;
 
+import spawnai.com.spawnwiki.models.content_urls.Content_Urls;
+
 /**
  * Created by amarthakur on 11/02/19.
  */
@@ -13,8 +15,7 @@ public class SpawnWikiModel {
     public String extract;
     public Thumbnail thumbnail;
     public String type;
-
-    public JSONObject content_urls;
+    public Content_Urls content_urls;
 
     public String getTitle() {
         return title;
@@ -56,20 +57,20 @@ public class SpawnWikiModel {
         this.thumbnail = thumbnail;
     }
 
-    public JSONObject getContent_urls() {
-        return content_urls;
-    }
-
-    public void setContent_urls(JSONObject content_urls) {
-        this.content_urls = content_urls;
-    }
-
     public String getType() {
         return type;
     }
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public Content_Urls getContent_urls() {
+        return content_urls;
+    }
+
+    public void setContent_urls(Content_Urls content_urls) {
+        this.content_urls = content_urls;
     }
 
     @Override
