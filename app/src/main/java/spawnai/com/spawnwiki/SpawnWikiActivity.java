@@ -23,7 +23,10 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import retrofit2.Call;
@@ -34,6 +37,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 import spawnai.com.spawnwiki.Constants.ISPAWNWIKICONSTANT;
 import spawnai.com.spawnwiki.fragments.SpawnEntityFragment;
 import spawnai.com.spawnwiki.interfaces.ISpawnAPI;
+import spawnai.com.spawnwiki.models.SpawnEntityModel;
 import spawnai.com.spawnwiki.models.SpawnWikiModel;
 import spawnai.com.spawnwiki.utils.TextSpeech;
 
@@ -80,7 +84,7 @@ public class SpawnWikiActivity extends AppCompatActivity implements View.OnClick
 
     private void callWikiAPI(final String entity) {
 
-        final String cloneEntity = entity.trim().replace(" ", "_").toLowerCase();
+        final String cloneEntity = entity.trim().replace(" ", "_");
         Log.d("ENTITY ", cloneEntity);
         progressBar.setVisibility(View.VISIBLE);
         Retrofit retrofit = new Retrofit.Builder()
@@ -175,7 +179,8 @@ public class SpawnWikiActivity extends AppCompatActivity implements View.OnClick
                     ArrayList<String> voiceSpeech = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
                     searchText.setText(voiceSpeech.get(0));
                     searchText.setSelection(voiceSpeech.get(0).length());
-                    callWikiAPI(voiceSpeech.get(0));
+                    //callWikiAPI(voiceSpeech.get(0));
+                    callSpawnAPI(voiceSpeech.get(0));
                 }
                 break;
         }
@@ -199,5 +204,34 @@ public class SpawnWikiActivity extends AppCompatActivity implements View.OnClick
     public static void hideKeyboardFrom(Context context, View view) {
         InputMethodManager imm = (InputMethodManager) context.getSystemService(Activity.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+    }
+
+    public void callSpawnAPI(String query) {
+        progressBar.setVisibility(View.VISIBLE);
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(ISPAWNWIKICONSTANT.SPAWN_API)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        final ISpawnAPI spawnAPI = retrofit.create(ISpawnAPI.class);
+        Call<List<SpawnEntityModel>> data = spawnAPI.getEntity(query);
+
+        data.enqueue(new Callback<List<SpawnEntityModel>>() {
+            @Override
+            public void onResponse(Call<List<SpawnEntityModel>> call, Response<List<SpawnEntityModel>> response) {
+                try {
+                    
+
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<SpawnEntityModel>> call, Throwable t) {
+                Log.d("ERROR: ", t.getMessage());
+            }
+        });
     }
 }
