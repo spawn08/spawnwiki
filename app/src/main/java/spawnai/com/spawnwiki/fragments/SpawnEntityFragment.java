@@ -1,8 +1,10 @@
 package spawnai.com.spawnwiki.fragments;
 
 import android.os.Bundle;
+import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,17 +17,19 @@ import com.bumptech.glide.request.RequestOptions;
 
 import spawnai.com.spawnwiki.R;
 import spawnai.com.spawnwiki.models.SpawnWikiModel;
+import spawnai.com.spawnwiki.utils.TextSpeech;
 
 /**
  * Created by amarthakur on 11/02/19.
  */
 
-public class SpawnEntityFragment extends Fragment {
+public class SpawnEntityFragment extends Fragment implements View.OnClickListener {
 
     private SpawnWikiModel spawnWikiModel;
     private ImageView profileImage;
     private TextView title;
     private TextView description;
+    private ConstraintLayout fragment_container;
 
     public void setData(SpawnWikiModel spawnWikiModel) {
         this.spawnWikiModel = spawnWikiModel;
@@ -39,6 +43,8 @@ public class SpawnEntityFragment extends Fragment {
         title = view.findViewById(R.id.title);
         profileImage = view.findViewById(R.id.profile_image);
         description = view.findViewById(R.id.description);
+        fragment_container = view.findViewById(R.id.fragment_container);
+        fragment_container.setOnClickListener(this);
         updateView();
         return view;
 
@@ -47,11 +53,16 @@ public class SpawnEntityFragment extends Fragment {
     private void updateView() {
         if (spawnWikiModel != null) {
             title.setText(spawnWikiModel.getDisplaytitle());
-            String info = getInfoFromExtract(spawnWikiModel.getExtract().replaceAll("\n"," "));
-            if (info != null && !info.isEmpty())
+            String info = getInfoFromExtract(spawnWikiModel.getExtract().replaceAll("\n", " "));
+            if (info != null && !info.isEmpty()) {
                 description.setText(info);
-            else
+                TextSpeech.getInstance().speak(info);
+            } else {
                 description.setText(spawnWikiModel.getExtract());
+                TextSpeech.getInstance().speak(spawnWikiModel.getExtract());
+            }
+
+
             if (spawnWikiModel.getThumbnail() != null && spawnWikiModel.getThumbnail().getSource() != null) {
                 Glide.with(getActivity())
                         .applyDefaultRequestOptions(new RequestOptions().placeholder(R.drawable.default_portrait).error(R.drawable.default_portrait))
@@ -84,5 +95,17 @@ public class SpawnEntityFragment extends Fragment {
         return text + ".";
     }
 
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.fragment_container:
 
+                if (TextSpeech.getInstance().getTextToSpeech() != null &&
+                        TextSpeech.getInstance().getTextToSpeech().isSpeaking()) {
+                    TextSpeech.getInstance().getTextToSpeech().stop();
+                }
+
+                break;
+        }
+    }
 }

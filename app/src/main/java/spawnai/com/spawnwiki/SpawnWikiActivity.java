@@ -1,17 +1,24 @@
 package spawnai.com.spawnwiki;
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
+import android.speech.tts.TextToSpeech;
 import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -28,6 +35,7 @@ import spawnai.com.spawnwiki.Constants.ISPAWNWIKICONSTANT;
 import spawnai.com.spawnwiki.fragments.SpawnEntityFragment;
 import spawnai.com.spawnwiki.interfaces.ISpawnAPI;
 import spawnai.com.spawnwiki.models.SpawnWikiModel;
+import spawnai.com.spawnwiki.utils.TextSpeech;
 
 public class SpawnWikiActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -36,6 +44,7 @@ public class SpawnWikiActivity extends AppCompatActivity implements View.OnClick
     private SpawnWikiActivity spawnWikiActivity;
     private ConstraintLayout container;
     private ProgressBar progressBar;
+    private ImageView spawnMic;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,8 +55,26 @@ public class SpawnWikiActivity extends AppCompatActivity implements View.OnClick
         button = findViewById(R.id.button_search);
         container = findViewById(R.id.container);
         progressBar = findViewById(R.id.progress);
+        spawnMic = findViewById(R.id.spawn_mic);
+
+        TextSpeech.getInstance().initialiseTTS(spawnWikiActivity.getApplicationContext());
+
+        searchText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+
+                if (actionId == EditorInfo.IME_ACTION_GO) {
+                    callWikiAPI(searchText.getText().toString());
+                    hideKeyboardFrom(spawnWikiActivity, container);
+                    return true;
+                }
+
+                return false;
+            }
+        });
 
         button.setOnClickListener(this);
+        spawnMic.setOnClickListener(this);
 
     }
 
@@ -67,6 +94,7 @@ public class SpawnWikiActivity extends AppCompatActivity implements View.OnClick
             @Override
             public void onResponse(Call<SpawnWikiModel> call, Response<SpawnWikiModel> response) {
                 if (response.isSuccessful()) {
+                    hideKeyboardFrom(spawnWikiActivity, container);
                     Log.d("API CONTENT ", response.body().toString());
                     SpawnWikiModel spawnWikiModel = response.body();
                     if (spawnWikiModel.getType().equals("disambiguation")) {
@@ -87,6 +115,7 @@ public class SpawnWikiActivity extends AppCompatActivity implements View.OnClick
                     }
 
                 } else {
+                    hideKeyboardFrom(spawnWikiActivity, container);
                     progressBar.setVisibility(View.GONE);
                     if (spawnWikiActivity != null)
                         Toast.makeText(spawnWikiActivity, "Page not found!", Toast.LENGTH_SHORT).show();
@@ -109,6 +138,7 @@ public class SpawnWikiActivity extends AppCompatActivity implements View.OnClick
         switch (v.getId()) {
             case R.id.button_search:
                 try {
+                    hideKeyboardFrom(spawnWikiActivity, container);
                     Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
                     intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
                     intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
@@ -117,6 +147,20 @@ public class SpawnWikiActivity extends AppCompatActivity implements View.OnClick
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+                break;
+
+            case R.id.spawn_mic:
+                try {
+                    hideKeyboardFrom(spawnWikiActivity, container);
+                    Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+                    intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+                    intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+                    intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak to the mic..");
+                    startActivityForResult(intent, 1000);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
                 break;
         }
     }
@@ -150,5 +194,10 @@ public class SpawnWikiActivity extends AppCompatActivity implements View.OnClick
             }
         } else
             getSupportFragmentManager().popBackStack();
+    }
+
+    public static void hideKeyboardFrom(Context context, View view) {
+        InputMethodManager imm = (InputMethodManager) context.getSystemService(Activity.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 }
